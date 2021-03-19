@@ -947,15 +947,16 @@ def network_driver_create_network():
                      "%(neutron_network_name)s successfully: %(network)s",
                      {'neutron_network_name': neutron_network_name,
                       'network': network})
-        if network_shared != shared:
-            raise exceptions.ConflictConfigOption(
-                'Network %(network_id)s had option '
-                'shared=%(network_shared)s, conflict with the given option '
-                'shared=%(shared)s', {
-                    'network_id': network_id,
-                    'network_shared': network_shared,
-                    'shared': shared
-                })
+### WORKAROUND MIXED APPEARANCE SHARED NETWORKS
+#        if network_shared != shared:
+#            raise exceptions.ConflictConfigOption(
+#                'Network %(network_id)s had option '
+#                'shared=%(network_shared)s, conflict with the given option '
+#                'shared=%(shared)s', {
+#                    'network_id': network_id,
+#                    'network_shared': network_shared,
+#                    'shared': shared
+#                })
         LOG.info("Using existing network %s "
                  "successfully", specified_network)
 
