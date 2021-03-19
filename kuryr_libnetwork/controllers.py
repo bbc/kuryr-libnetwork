@@ -808,8 +808,13 @@ def network_driver_create_network():
         return gateway_ip
 
     if json_data['IPv4Data']:
-        v4_pool_cidr = json_data['IPv4Data'][0]['Pool']
-        v4_gateway_ip = _get_gateway_ip(json_data['IPv4Data'][0])
+        ### IPV6 WORKAROUND
+        if json_data['IPv4Data'][0]['Pool'] == "169.254.0.0/16":
+            del json_data['IPv4Data']
+        else:
+            v4_pool_cidr = json_data['IPv4Data'][0]['Pool']
+            v4_gateway_ip = _get_gateway_ip(json_data['IPv4Data'][0])
+        ### IPV6 WORKAROUND
 
     if json_data['IPv6Data']:
         v6_pool_cidr = json_data['IPv6Data'][0]['Pool']
@@ -1561,6 +1566,10 @@ def ipam_request_pool():
     requested_pool = json_data['Pool']
     requested_subpool = json_data['SubPool']
     v6 = json_data['V6']
+    ### IPV6 WORKAROUND
+    if "neutron.subnet.v6.uuid" in json_data['Options'] and requested_pool == "" and requested_subpool == "":
+        return flask.jsonify({'PoolID': None, 'Pool': '169.254.0.0/16'})
+    ### IPV6 WORKAROUND
     subnet_cidr = ''
     pool_name = ''
     pool_id = ''
@@ -1673,6 +1682,10 @@ def ipam_request_address():
               "/IpamDriver.RequestAddress", json_data)
     jsonschema.validate(json_data, schemata.REQUEST_ADDRESS_SCHEMA)
     pool_id = json_data['PoolID']
+    ### IPV6 WORKAROUND
+    if pool_id == "":
+        return flask.jsonify({'Address': '169.254.0.1/16'})
+    ### IPV6 WORKAROUND
     req_address = json_data['Address']
     req_mac_address = ''
     is_gateway = False
@@ -1832,6 +1845,10 @@ def ipam_release_pool():
               json_data)
     jsonschema.validate(json_data, schemata.RELEASE_POOL_SCHEMA)
     pool_id = json_data['PoolID']
+    ### IPV6 WORKAROUND
+    if pool_id == "":
+        return flask.jsonify(const.SCHEMA['SUCCESS'])
+    ### IPV6 WORKAROUND
 
     # Remove subnetpool_id tag from Neutron existing subnet.
     if app.tag_ext:
@@ -1897,6 +1914,10 @@ def ipam_release_address():
               json_data)
     jsonschema.validate(json_data, schemata.RELEASE_ADDRESS_SCHEMA)
     pool_id = json_data['PoolID']
+    ### IPV6 WORKAROUND
+    if pool_id == "":
+        return flask.jsonify(const.SCHEMA['SUCCESS'])
+    ### IPV6 WORKAROUND
     rel_address = json_data['Address']
     # check if any subnet with matching subnetpool_id is present
     subnets = _get_subnets_by_attrs(subnetpool_id=pool_id)
